@@ -65,3 +65,31 @@ class BookDB:
 
         return self.cursor.rowcount > 0
         
+    def set_available(self, book_id: int, val: bool, member_id: int) -> bool:
+        logger.info("Start... update available book on database")
+        
+        if val:
+            self.cursor.execute(
+                """
+                    UPDATE books SET
+                        is_available = TRUE,
+                        borrowed_by_member_id IS NULL
+                    WHERE id = %s
+                """,
+                (book_id,)
+            )
+            self.conn.commit()
+
+        else:
+            self.cursor.execute(
+                """
+                    UPDATE books SET
+                        is_available = FALSE,
+                        borrowed_by_member_id = %s
+                    WHERE id = %s
+                """,
+                (member_id, book_id)
+            )
+            self.conn.commit()
+        return self.cursor.rowcount > 0
+        
