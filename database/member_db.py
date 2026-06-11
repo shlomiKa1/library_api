@@ -7,12 +7,12 @@ from enum import Enum
 class MemberDB:
     def __init__(self):
         self.conn = db.get_connection()
-        self.cursor = self.conn.cursor()
+        self.cursor = self.conn.cursor(dictionary=True)
 
     def craete_member(self, data):
         pass
 
-    def get_all_members(self):
+    def get_all_members(self) -> list[dict]:
         logger.info("Start... Get all members from database")
 
         self.cursor.execute("SELECT * FROM members")
@@ -21,6 +21,15 @@ class MemberDB:
 
         return rows
     
+    def get_member_by_id(self, member_id: int) -> dict | None:
+        logger.info("Start... Get member by ID '%s' from database", member_id)
+
+        self.cursor.execute("SELECT * FROM members WHERE id = %s", (member_id,))
+        row = self.cursor.fetchone()
+        self.close()
+
+        return row
+
     def close(self):
         self.conn.close()
         self.cursor.close()
