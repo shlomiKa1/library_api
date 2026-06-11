@@ -111,7 +111,7 @@ class BookDB:
 
         return total_books
     
-    def count_available_books(self):
+    def count_available_books(self) -> int | None:
         logger.info("Start... Get all books that available from database")
 
         self.cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = TRUE")
@@ -120,7 +120,7 @@ class BookDB:
 
         return available
     
-    def count_borrowed_book(self):
+    def count_borrowed_book(self) -> int | None:
         logger.info("Start... get total of books that borrowed from database")
 
         self.cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = FALSE")
@@ -128,6 +128,15 @@ class BookDB:
         self.close()
 
         return borrowed
+    
+    def count_by_genre(self, genre) -> int | None:
+        logger.info("Start... Get total books by genre '%s' from database", genre)
+
+        self.cursor.execute("SELECT COUNT(*) FROM books WHERE genre = %s", genre)
+        total_genre = self.cursor.fetchone()
+        self.close()
+
+        return total_genre
     
     def close(self):
         self.conn.close()
