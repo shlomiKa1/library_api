@@ -9,7 +9,7 @@
 
 ## Code for create to doker
 ```py
-docker run --name mysql-w7 -e MYSQL_ROOT_PASSWORD=<passqord> -e MYSQL_DATABASE=soldiers_db -p 3306:3306 -d mysql:8
+docker run --name mysql-w7 -e MYSQL_ROOT_PASSWORD=<passqord> -e MYSQL_DATABASE=<database> -p <port>:<port> -d mysql:8
 
 ```
 
@@ -116,7 +116,7 @@ Step 2 Show which container is running:
 ```docker ps```
 
 Step 3 Start the container:
-```docker exec -it mysql-w7 mysql -uroot -proot```
+```docker exec -it mysql-w7 mysql -u<user> -p<password>```
 
 Step 4 create a vitrual:
 ```python3/py -m venv .venv```
