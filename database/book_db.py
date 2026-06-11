@@ -81,10 +81,8 @@ class BookDB:
         if val:
             self.cursor.execute(
                 """
-                    UPDATE books SET
-                        is_available = TRUE,
-                        borrowed_by_member_id IS NULL
-                    WHERE id = %s
+                    UPDATE books SET is_available = TRUE,
+                    borrowed_by_member_id IS NULL WHERE id = %s
                 """,
                 (book_id,)
             )
@@ -93,10 +91,8 @@ class BookDB:
         else:
             self.cursor.execute(
                 """
-                    UPDATE books SET
-                        is_available = FALSE,
-                        borrowed_by_member_id = %s
-                    WHERE id = %s
+                    UPDATE books SET is_available = FALSE,
+                    borrowed_by_member_id = %s WHERE id = %s
                 """,
                 (member_id, book_id)
             )
@@ -105,6 +101,16 @@ class BookDB:
         self.close()
         
         return availabled
+    
+    def count_total_books(self) -> int | None:
+        logger.info("Start... Get all total books in the database")
+        
+        self.cursor.execute("SELECT COUNT(*)")
+        rows = self.cursor.fetchall()
+        self.close()
+
+        return rows
+        
     
     def close(self):
         self.conn.close()
