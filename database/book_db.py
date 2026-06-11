@@ -26,8 +26,8 @@ class BookDB:
         self.conn = get_connection()
         self.cursor = self.conn.cursor()
 
-    def create_book(self, data: Books):
-        logger.info("Start create a new book...")
+    def create_book(self, data: Books) -> int | None:
+        logger.info("Start... create a new book on database")
 
         self.cursor.execute(
             "INSERT INTO books (title, author, genre) VALUES(%s, %s, %s)",
@@ -36,6 +36,14 @@ class BookDB:
         self.conn.commit()
 
         return self.cursor.lastrowid
+    
+    def get_all_books(self) -> list[dict] | None:
+        logger("Start... get all books on database")
+
+        self.cursor.execute("SELECT * FROM books")
+        return self.cursor.fetchall()
+    
+    
 
     
         
