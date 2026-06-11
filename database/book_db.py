@@ -106,11 +106,19 @@ class BookDB:
         logger.info("Start... Get all total books in the database")
         
         self.cursor.execute("SELECT COUNT(*)")
-        rows = self.cursor.fetchall()
+        total_books = self.cursor.fetchone()
         self.close()
 
-        return rows
-        
+        return total_books
+    
+    def count_available_books(self):
+        logger.info("Start... Get all books that available from database")
+
+        self.cursor.execute("SELECT COUNT(*) WHERE is_available = TRUE")
+        available = self.cursor.fetchone()
+        self.close()
+
+        return available
     
     def close(self):
         self.conn.close()
