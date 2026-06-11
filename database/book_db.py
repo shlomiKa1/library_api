@@ -1,4 +1,4 @@
-from .db_connection import get_connection
+from .db_connection import db
 from logs.logger_config import logger
 from pydantic import BaseModel, Field
 from enum import Enum
@@ -23,7 +23,7 @@ class UpdateBooks(BaseModel):
 
 class BookDB:
     def __init__(self):
-        self.conn = get_connection()
+        self.conn = db.get_connection()
         self.cursor = self.conn.cursor(dictionary=True)
 
     def create_book(self, data: Books) -> int | None:
@@ -35,20 +35,28 @@ class BookDB:
             (data.title, data.author, data.genre)
         )
         self.conn.commit()
+        new_id = self.cursor.lastrowid
+        self.close()
 
-        return self.cursor.lastrowid
+        return new_id
     
     def get_all_books(self) -> list[dict] | None:
         logger("Start... get all books on database")
 
         self.cursor.execute("SELECT * FROM books")
-        return self.cursor.fetchall()
+        rows = self.cursor.fetchall()
+        self.close()
+
+        return rows
     
     def get_book_by_id(self, book_id: int) -> dict | None:
         logger.info("Start... get book by id database")
 
         self.cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
-        return self.cursor.fetchone()
+        row = self.cursor.fetchone()
+        self.close()
+
+        return row
     
     def update_book(self, book_id: int, data: UpdateBooks) -> bool:
         logger.info("Start... update book on database")
@@ -62,9 +70,11 @@ class BookDB:
             (join_parts, list(data.values()) + [book_id])
         )
         self.conn.commit()
+        updated = self.cursor.rowcount > 0
+        self.close()
 
-        return self.cursor.rowcount > 0
-        
+        return updated
+    
     def set_available(self, book_id: int, val: bool, member_id: int) -> bool:
         logger.info("Start... update available book on database")
         
@@ -91,5 +101,12 @@ class BookDB:
                 (member_id, book_id)
             )
             self.conn.commit()
-        return self.cursor.rowcount > 0
+        availabled = self.cursor.rowcount > 0
+        self.close()
+        
+        return availabled
+    
+    def close(self):
+        self.conn.close()
+        self.cursor.close()
         
