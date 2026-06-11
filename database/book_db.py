@@ -43,7 +43,9 @@ class BookDB:
         self.cursor.execute("SELECT * FROM books")
         return self.cursor.fetchall()
     
-    
+    def get_book_by_id(self, book_id: int) -> dict | None:
+        logger.info("Start... get book by id")
 
-    
+        self.cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+        return self.cursor.fetchone()
         
