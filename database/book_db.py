@@ -129,7 +129,7 @@ class BookDB:
 
         return borrowed
     
-    def count_by_genre(self, genre) -> int | None:
+    def count_by_genre(self, genre: Genre) -> int | None:
         logger.info("Start... Get total books by genre '%s' from database", genre)
 
         self.cursor.execute("SELECT COUNT(*) FROM books WHERE genre = %s", genre)
@@ -138,7 +138,15 @@ class BookDB:
 
         return total_genre
     
+    def count_active_borrows_by_member(self, member_id: int) -> int | None:
+        logger.info("Start... Get total books of a member ID from database %s", member_id)
+        
+        self.cursor.execute("SELECT COUNT(title) FROM books WHERE borrowed_by_member_id = %s", (member_id,))
+        total_member_book = self.cursor.fetchone()
+        self.close()
+
+        return total_member_book
+    
     def close(self):
         self.conn.close()
         self.cursor.close()
-        
