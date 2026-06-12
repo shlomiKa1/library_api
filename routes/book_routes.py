@@ -25,3 +25,14 @@ def get_books():
     logger.info("Return '%s' books from database", len(all_books))
     
     return {"Message": all_books}
+
+@router_books.get("/{id}")
+def book_by_id(id: int):
+    logger.info("Start... get book by ID '%s' from server", id)
+
+    book = books.get_book_by_id(id)
+    if not book:
+        raise HTTPException(404, "ID not found")
+    logger.info("Return book by ID '%s'", id)
+    return {"Message": book}
+ 
