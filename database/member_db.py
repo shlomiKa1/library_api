@@ -60,7 +60,20 @@ class MemberDB:
         self.close()
 
         return updated
+    
+    def deactivate_member(self, member_id: int) -> bool:
+        logger.info("Start... deactivate member by ID '%s' on database", member_id)
 
-    def close(self):
+        self.cursor.execute(
+            "UPDATE members SET is_active = FALSE WHERE id = %s",
+            (member_id, )    
+        )
+        self.conn.commit()
+        deactivated = self.cursor.rowcount > 0
+        self.close()
+
+        return deactivated
+    
+    def close(self) -> None:
         self.cursor.close()
         self.conn.close()
