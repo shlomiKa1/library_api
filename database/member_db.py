@@ -114,6 +114,20 @@ class MemberDB:
         self.close()
         
         return total_of_active()
+    
+    def get_top_member(self) -> dict | None:
+        logger.info("Start... get top activate member from database")
+
+        self.cursor.execute(
+            """
+                SELECT *, MAX(total_borrows) as max_total
+                WHERE total_borrows = max_total
+            """
+        )
+        top_member = self.cursor.fetchone()
+        self.close()
+
+        return top_member
         
     def close(self) -> None:
         self.cursor.close()
