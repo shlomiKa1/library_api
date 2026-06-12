@@ -17,11 +17,11 @@ class MemberDB:
 
         self.cursor.execute(
             "INSERT INTO members (name, email) VALUES(%s, %s)",
-            (data.name, data.email)    
+            (data["name"], data["email"])    
         )
         self.conn.commit()
         new_id = self.cursor.lastrowid
-        self.close()
+        self.cursor.close()
 
         return new_id
     
@@ -30,7 +30,7 @@ class MemberDB:
 
         self.cursor.execute("SELECT * FROM members")
         rows = self.cursor.fetchall()
-        self.close()
+        self.cursor.close()
 
         return rows
     
@@ -39,7 +39,7 @@ class MemberDB:
 
         self.cursor.execute("SELECT * FROM members WHERE id = %s", (member_id,))
         row = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return row
     
@@ -56,7 +56,7 @@ class MemberDB:
         )
         self.conn.commit()
         updated = self.cursor.rowcount > 0
-        self.close()
+        self.cursor.close()
 
         return updated
     
@@ -69,7 +69,7 @@ class MemberDB:
         )
         self.conn.commit()
         deactivated = self.cursor.rowcount > 0
-        self.close()
+        self.cursor.close()
 
         return deactivated
     
@@ -82,7 +82,7 @@ class MemberDB:
         )
         self.conn.commit()
         activated = self.cursor.rowcount > 0
-        self.close()
+        self.cursor.close()
 
         return activated
     
@@ -102,7 +102,7 @@ class MemberDB:
             logger.warning("Member ID '%s' come to is limit - %s", member_id, total)
 
         increment = self.cursor.rowcount > 0
-        self.close()
+        self.cursor.close()
 
         return increment
     
@@ -111,7 +111,7 @@ class MemberDB:
 
         self.cursor.execute("SELECT COUNT(name) FROM members WHERE is_active = TRUE")
         total_of_active = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
         
         return total_of_active()
     
@@ -125,10 +125,6 @@ class MemberDB:
             """
         )
         top_member = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return top_member
-        
-    def close(self) -> None:
-        self.cursor.close()
-        self.conn.close()

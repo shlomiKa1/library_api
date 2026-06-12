@@ -5,10 +5,10 @@ from enum import Enum
 
 class Genre(Enum):
     fiction = "Fiction"
-    non_fiction  = "Non-fiction"
-    science = "science"
+    non_fiction  = "Non-Fiction"
+    science = "Science"
     history = "History"
-    other = "other"
+    other = "Other"
 
 class Books(BaseModel):
     title: str = Field(max_length=50)
@@ -32,11 +32,11 @@ class BookDB:
         data = data.model_dump()
         self.cursor.execute(
             "INSERT INTO books (title, author, genre) VALUES(%s, %s, %s)",
-            (data.title, data.author, data.genre)
+            (data["title"], data["author"], data["genre"].value)
         )
         self.conn.commit()
         new_id = self.cursor.lastrowid
-        self.close()
+        self.cursor.close()
 
         return new_id
     
@@ -45,7 +45,7 @@ class BookDB:
 
         self.cursor.execute("SELECT * FROM books")
         rows = self.cursor.fetchall()
-        self.close()
+        self.cursor.close()
 
         return rows
     
@@ -54,7 +54,7 @@ class BookDB:
 
         self.cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
         row = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return row
     
@@ -71,7 +71,7 @@ class BookDB:
         )
         self.conn.commit()
         updated = self.cursor.rowcount > 0
-        self.close()
+        self.cursor.close()
 
         return updated
     
@@ -98,7 +98,7 @@ class BookDB:
             )
             self.conn.commit()
         availabled = self.cursor.rowcount > 0
-        self.close()
+        self.cursor.close()
         
         return availabled
     
@@ -107,7 +107,7 @@ class BookDB:
         
         self.cursor.execute("SELECT COUNT(*) FROM books")
         total_books = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return total_books
     
@@ -116,7 +116,7 @@ class BookDB:
 
         self.cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = TRUE")
         available = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return available
     
@@ -125,7 +125,7 @@ class BookDB:
 
         self.cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = FALSE")
         borrowed = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return borrowed
     
@@ -134,19 +134,15 @@ class BookDB:
 
         self.cursor.execute("SELECT COUNT(*) FROM books WHERE genre = %s", genre)
         total_genre = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return total_genre
     
     def count_active_borrows_by_member(self, member_id: int) -> int | None:
         logger.info("Start... Get total books of a member ID from database %s", member_id)
-        
+
         self.cursor.execute("SELECT COUNT(title) FROM books WHERE borrowed_by_member_id = %s", (member_id,))
         total_member_book = self.cursor.fetchone()
-        self.close()
+        self.cursor.close()
 
         return total_member_book
-    
-    def close(self):
-        self.conn.close()
-        self.cursor.close()
