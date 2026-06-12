@@ -43,6 +43,23 @@ class MemberDB:
         self.close()
 
         return row
+    
+    def update_member(self, member_id: int, data: Member) -> bool:
+        logger.info("Start... update member by ID '%s' on database", member_id)
+
+        data = data.model_dump(exclude_unset=True)
+        parts = [f"{key} = %s" for key in data.keys()]
+        join_parts = ", ".join(parts)
+
+        self.cursor.execute(
+            "UPDATE members SET (%s) WHERE id = %s",
+            (join_parts, list(data.values()) + [member_id])
+        )
+        self.conn.commit()
+        updated = self.cursor.rowcount > 0
+        self.close()
+
+        return updated
 
     def close(self):
         self.cursor.close()
