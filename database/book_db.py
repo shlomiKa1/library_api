@@ -24,37 +24,36 @@ class UpdateBooks(BaseModel):
 class BookDB:
     def __init__(self):
         self.conn = db.get_connection()
-        self.cursor = self.conn.cursor(dictionary=True)
 
     def create_book(self, data: Books) -> int | None:
         logger.info("Start... create a new book on database")
         
         data = data.model_dump()
-        self.cursor.execute(
-            "INSERT INTO books (title, author, genre) VALUES(%s, %s, %s)",
-            (data["title"], data["author"], data["genre"].value)
-        )
-        self.conn.commit()
-        new_id = self.cursor.lastrowid
-        self.cursor.close()
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute(
+                "INSERT INTO books (title, author, genre) VALUES(%s, %s, %s)",
+                (data["title"], data["author"], data["genre"].value)
+            )
+            self.conn.commit()
+            new_id = cursor.lastrowid
 
         return new_id
     
     def get_all_books(self) -> list[dict] | None:
-        logger("Start... get all books on database")
+        logger.info("Start... get all books on database")
 
-        self.cursor.execute("SELECT * FROM books")
-        rows = self.cursor.fetchall()
-        self.cursor.close()
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM books")
+            rows = cursor.fetchall()
 
         return rows
     
     def get_book_by_id(self, book_id: int) -> dict | None:
         logger.info("Start... get book by id database")
 
-        self.cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
-        row = self.cursor.fetchone()
-        self.cursor.close()
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+            row = cursor.fetchone()
 
         return row
     
@@ -65,84 +64,84 @@ class BookDB:
         parts = [f"{key} = %s" for key in data.keys()]
         join_parts = ", ".join(parts)
 
-        self.cursor.execute(
-            "UPDATE books SET %s WHERE id = %s",
-            (join_parts, list(data.values()) + [book_id])
-        )
-        self.conn.commit()
-        updated = self.cursor.rowcount > 0
-        self.cursor.close()
-
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute(
+                "UPDATE books SET %s WHERE id = %s",
+                (join_parts, list(data.values()) + [book_id])
+            )
+            self.conn.commit()
+            updated = cursor.rowcount > 0
+        
         return updated
     
     def set_available(self, book_id: int, val: bool, member_id: int) -> bool:
         logger.info("Start... update available book on database")
         
-        if val:
-            self.cursor.execute(
-                """
-                    UPDATE books SET is_available = TRUE,
-                    borrowed_by_member_id IS NULL WHERE id = %s
-                """,
-                (book_id,)
-            )
-            self.conn.commit()
+        with self.conn.cursor(dictionary=True) as cursor:
+            if val:
+                cursor.execute(
+                    """
+                        UPDATE books SET is_available = TRUE,
+                        borrowed_by_member_id IS NULL WHERE id = %s
+                    """,
+                    (book_id,)
+                )
+                self.conn.commit()
 
-        else:
-            self.cursor.execute(
-                """
-                    UPDATE books SET is_available = FALSE,
-                    borrowed_by_member_id = %s WHERE id = %s
-                """,
-                (member_id, book_id)
-            )
-            self.conn.commit()
-        availabled = self.cursor.rowcount > 0
-        self.cursor.close()
+            else:
+                cursor.execute(
+                    """
+                        UPDATE books SET is_available = FALSE,
+                        borrowed_by_member_id = %s WHERE id = %s
+                    """,
+                    (member_id, book_id)
+                )
+                self.conn.commit()
+            availabled = cursor.rowcount > 0
         
         return availabled
     
     def count_total_books(self) -> int | None:
         logger.info("Start... Get all total books in the database")
         
-        self.cursor.execute("SELECT COUNT(*) FROM books")
-        total_books = self.cursor.fetchone()
-        self.cursor.close()
-
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT COUNT(*) FROM books")
+            total_books = self.cursor.fetchone()
+        
         return total_books
     
     def count_available_books(self) -> int | None:
         logger.info("Start... Get all books that available from database")
 
-        self.cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = TRUE")
-        available = self.cursor.fetchone()
-        self.cursor.close()
-
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = TRUE")
+            available = cursor.fetchone()
+        
         return available
     
     def count_borrowed_book(self) -> int | None:
         logger.info("Start... get total of books that borrowed from database")
 
-        self.cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = FALSE")
-        borrowed = self.cursor.fetchone()
-        self.cursor.close()
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = FALSE")
+            borrowed = cursor.fetchone()
 
         return borrowed
     
     def count_by_genre(self, genre: Genre) -> int | None:
         logger.info("Start... Get total books by genre '%s' from database", genre)
 
-        self.cursor.execute("SELECT COUNT(*) FROM books WHERE genre = %s", genre)
-        total_genre = self.cursor.fetchone()
-        self.cursor.close()
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT COUNT(*) FROM books WHERE genre = %s", genre)
+            total_genre = cursor.fetchone()
 
         return total_genre
     
     def count_active_borrows_by_member(self, member_id: int) -> int | None:
         logger.info("Start... Get total books of a member ID from database %s", member_id)
 
-        self.cursor.execute("SELECT COUNT(title) FROM books WHERE borrowed_by_member_id = %s", (member_id,))
-        total_member_book = self.cursor.fetchone()
-        self.cursor.close()
-
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT COUNT(title) FROM books WHERE borrowed_by_member_id = %s", (member_id,))
+            total_member_book = cursor.fetchone()
+        
         return total_member_book
