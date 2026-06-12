@@ -1,17 +1,31 @@
 from .db_connection import db
 from logs.logger_config import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from enum import Enum
 
+
+class Member(BaseModel):
+    name: str = Field(max_length=50)
+    email: EmailStr
 
 class MemberDB:
     def __init__(self):
         self.conn = db.get_connection()
         self.cursor = self.conn.cursor(dictionary=True)
 
-    def craete_member(self, data):
-        pass
+    def craete_member(self, data: Member) -> int | None:
+        logger.info("Start... Create a member on database")
 
+        self.cursor.execute(
+            "INSERT INTO members (name, email) VALUES(%s, %s)",
+            (data.name, data.email)    
+        )
+        self.conn.commit()
+        new_id = self.cursor.lastrowid
+        self.close()
+
+        return new_id
+    
     def get_all_members(self) -> list[dict]:
         logger.info("Start... Get all members from database")
 
@@ -31,5 +45,5 @@ class MemberDB:
         return row
 
     def close(self):
-        self.conn.close()
         self.cursor.close()
+        self.conn.close()
