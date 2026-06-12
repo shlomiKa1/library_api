@@ -1,8 +1,7 @@
 from .db_connection import db
 from logs.logger_config import logger
 from pydantic import BaseModel, Field, EmailStr
-from enum import Enum
-
+from config import COUNT_BOOKS
 
 class Member(BaseModel):
     name: str = Field(max_length=50)
@@ -74,7 +73,7 @@ class MemberDB:
 
         return deactivated
     
-    def activate_member(self, member_id: int):
+    def activate_member(self, member_id: int) -> bool:
         logger.info("Start... activate member by ID '%s' on database", member_id)
 
         self.cursor.execute(
@@ -85,7 +84,27 @@ class MemberDB:
         activated = self.cursor.rowcount > 0
         self.close()
 
-        return activated    
+        return activated
+    
+    def increment_borrows(self, member_id: int) -> bool:
+        logger.info("Start... count how many books member by ID '%s' borrow on database")
+        
+        self.cursor.execute("SELECT total_borrows FROM members WHERE id = %s", (member_id,))
+        total = self.cursor.fetchone()
+
+
+        if total < COUNT_BOOKS:
+            total += 1
+            self.cursor.execute("UPDATE members SET total_borrows = %s", (total,))
+            self.conn.commit()
+
+        if total == COUNT_BOOKS:
+            logger.warning("Member ID '%s' come to is limit - %s", member_id, total)
+
+        increment = self.cursor.rowcount > 0
+        self.close()
+
+        return increment
     
     def close(self) -> None:
         self.cursor.close()
