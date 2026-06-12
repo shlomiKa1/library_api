@@ -106,6 +106,15 @@ class MemberDB:
 
         return increment
     
+    def count_active_members(self) -> int | None:
+        logger.info("Start... get total of activate members on database")
+
+        self.cursor.execute("SELECT COUNT(name) FROM members WHERE is_active = TRUE")
+        total_of_active = self.cursor.fetchone()
+        self.close()
+        
+        return total_of_active()
+        
     def close(self) -> None:
         self.cursor.close()
         self.conn.close()
