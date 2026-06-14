@@ -9,11 +9,9 @@ class Member(BaseModel):
 
 class MemberDB:
     def __init__(self):
-        self.conn = db.get_connection()
+        self.conn = db.conn
 
     def craete_member(self, data: Member) -> int | None:
-        logger.info("Start... Create a member on database")
-
         data = data.model_dump()
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
@@ -21,90 +19,69 @@ class MemberDB:
                 (data["name"], data["email"])    
             )
             self.conn.commit()
+            logger.info("Add a new member on database")
             return cursor.lastrowid
     
     def get_all_members(self) -> list[dict]:
-        logger.info("Start... Get all members from database")
-
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute("SELECT * FROM members")
             return cursor.fetchall()
 
     def get_member_by_id(self, member_id: int) -> dict | None:
-        logger.info("Start... Get member by ID '%s' from database", member_id)
-
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute("SELECT * FROM members WHERE id = %s", (member_id,))
             return cursor.fetchone()
     
     def update_member(self, member_id: int, data: dict) -> bool:
-        logger.info("Start... update member by ID '%s' on database", member_id)
-
         parts = [f"{key} = %s" for key in data.keys()]
         join_parts = ", ".join(parts)
 
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
-                "UPDATE members SET (%s) WHERE id = %s",
-                (join_parts, list(data.values()) + [member_id])
+                f"UPDATE members SET {join_parts} WHERE id = %s",
+                list(data.values()) + [member_id]
             )
             self.conn.commit()
+            logger.info("Member ID '%s' is updated", member_id)
             return cursor.rowcount > 0
     
     def deactivate_member(self, member_id: int) -> bool:
-        logger.info("Start... deactivate member by ID '%s' on database", member_id)
-
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
                 "UPDATE members SET is_active = FALSE WHERE id = %s",
                 (member_id, )    
             )
             self.conn.commit()
+            logger.info("deactivate member ID '%s' on database", member_id)
             return cursor.rowcount > 0
 
     def activate_member(self, member_id: int) -> bool:
-        logger.info("Start... activate member by ID '%s' on database", member_id)
-
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
                 "UPDATE members SET is_active = True Where id = %s",
                 (member_id,)
             )
             self.conn.commit()
+            logger.info("Activate member ID '%s' on database", member_id)
             return cursor.rowcount > 0
         
-    def increment_borrows(self, member_id: int) -> bool:
-        logger.info("Start... count how many books member by ID '%s' borrow on database")
-        
-        with self.conn.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT total_borrows FROM members WHERE id = %s", (member_id,))
-            total = cursor.fetchone()
-
-
-            if total < COUNT_BOOKS:
-                total += 1
-                cursor.execute("UPDATE members SET total_borrows = %s", (total,))
-                self.conn.commit()
-
-            if total == COUNT_BOOKS:
-                logger.warning("Member ID '%s' come to is limit - %s", member_id, total)
-
+    def increment_borrows(self, member_id: int) -> bool:        
+        with self.conn.cursor() as cursor:
+            cursor.execute("UPDATE members SET total_borrows = COALESCE(total_borrows, 0) +1 WHERE id = %s AND total_borrows ", (member_id,))
+            self.conn.commit()
+            logger.info("Count books that member ID '%s' borrow on database", member_id)
             return cursor.rowcount > 0
         
     def count_active_members(self) -> int | None:
-        logger.info("Start... get total of activate members on database")
-
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute("SELECT COUNT(name) FROM members WHERE is_active = TRUE")
             return cursor.fetchone()
     
     def get_top_member(self) -> dict | None:
-        logger.info("Start... get top activate member from database")
-
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
                 """
-                    SELECT *, MAX(total_borrows) as max_total
+                    SELECT name, MAX(total_borrows) as max_total
                     WHERE total_borrows = max_total
                 """
             )

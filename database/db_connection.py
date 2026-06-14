@@ -8,33 +8,33 @@ class DbConn:
         self.host = host
         self.user = user
         self.password = password
-
-        self.conn = self.get_connect()
+        
+        self.conn = None
+        self.get_connect()
 
     def get_connect(self):
-        return mysql.connector.connect(
+        self.conn = mysql.connector.connect(
             host=self.host,
             user=self.user,
             password=self.password
         )
 
+    @property
     def get_connection(self):
         if self.conn.is_connected():
             return self.conn
         
-        self.conn = self.get_connect()
-        return self.conn
+        # self.conn = self.get_connect()\
+        return self.get_connect()
 
     def create_database(self):
         cursor = self.conn.cursor()
 
         # Its ok to put f-string for a database
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DATABASE}")
+        cursor.execute(f"USE {DATABASE}")
         logger.info("Database '%s' created successfully", DATABASE)
         self.conn.commit()
-
-        cursor.execute(f"USE {DATABASE}")
-        
         cursor.close()
 
     def create_table_books(self):
@@ -67,7 +67,7 @@ class DbConn:
                     name VARCHAR(50) NOT NULL,
                     email VARCHAR(30) UNIQUE,
                     is_active BOOLEAN DEFAULT TRUE,
-                    total_borrows INT DEFAULT NULL
+                    total_borrows INT DEFAULT 0
                 )
             """
         )
@@ -76,5 +76,8 @@ class DbConn:
 
         cursor.close()
 
-db = DbConn(CONMNECTION["host"], CONMNECTION["user"], CONMNECTION["password"])
-print(CONMNECTION["user"])
+try:
+    db = DbConn(CONMNECTION["host"], CONMNECTION["user"], CONMNECTION["password"])
+except Exception as e:
+    print(e)
+    raise
