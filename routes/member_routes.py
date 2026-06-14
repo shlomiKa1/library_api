@@ -33,7 +33,7 @@ def member_by_id(id: int):
         raise HTTPException(404, "ID not found")
     
     logger.info("Return member by ID '%s'", id)
-    return member
+    return {"Message": member}
 
 @router_members.patch("/{id}", status_code=200)
 def edit_member(id: int, new_member: Member):
@@ -45,3 +45,14 @@ def edit_member(id: int, new_member: Member):
     
     logger.info("Updated member ID '%s' successfully", id)
     return {"Message": f"Updated member ID {id} successfully"}
+
+@router_members.patch("/{id}/deactivate")
+def deactivate_member(id: int):
+    logger.info("Start... dactivate member by ID '%s' - server", id)
+
+    deactivated = member_db.deactivate_member(id)
+    if not deactivated:
+        raise HTTPException(404, "ID not found")
+
+    logger.info("Deactivated member by ID '%s'", id)
+    return {"Message": f"Deactivated member by ID {id}"}
