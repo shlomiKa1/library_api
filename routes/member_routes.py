@@ -15,3 +15,11 @@ def add_member(new_member: Member):
         raise HTTPException(500, "Internal Server Error")
     return {"Message": f"Meber created successfully is ID '{new_id}'"}
     
+@router_members.get("", status_code=200)
+def get_members():
+    logger.info("Start... get all members - server")
+
+    members = member_db.get_all_members()
+    logger.info("Return '%s' members", len(members))
+
+    return {"Message": members}
