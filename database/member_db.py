@@ -128,3 +128,5 @@ class MemberDB:
         self.cursor.close()
 
         return top_member
+    
+member_db = MemberDB()

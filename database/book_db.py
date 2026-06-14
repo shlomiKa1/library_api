@@ -16,9 +16,11 @@ class Books(BaseModel):
     genre: Genre
 
 class UpdateBooks(BaseModel):
-    title: str | None = Field(max_length=50)
-    author: str | None = Field(max_length=50)
+    title: str | None = Field(default=None, max_length=50)
+    author: str | None = Field(default=None, max_length=50)
     genre: Genre | None
+    is_available: bool | None
+    borrowed_by_member_id: int | None
 
 
 class BookDB:
@@ -57,17 +59,20 @@ class BookDB:
 
         return row
     
-    def update_book(self, book_id: int, data: UpdateBooks) -> bool:
+    def update_book(self, book_id: int, data: dict) -> bool:
         logger.info("Start... update book on database")
 
-        data = data.model_dump(exclude_unset=True)
+        # data = data.model_dump(exclude_unset=True)
+        if "genre" in data:
+            data["genre"] = data["genre"].value
+        
         parts = [f"{key} = %s" for key in data.keys()]
         join_parts = ", ".join(parts)
-
+        
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
-                "UPDATE books SET %s WHERE id = %s",
-                (join_parts, list(data.values()) + [book_id])
+                f"UPDATE books SET {join_parts} WHERE id = %s",
+                list(data.values()) + [book_id]
             )
             self.conn.commit()
             updated = cursor.rowcount > 0
@@ -145,3 +150,5 @@ class BookDB:
             total_member_book = cursor.fetchone()
         
         return total_member_book
+    
+books_db = BookDB()
