@@ -70,9 +70,10 @@ def borrow_book(id: int, member_id: int):
         raise HTTPException(400, " Member has reached maximum borrows")
     
     if books_db.set_available(id, False, member_id):
-        member_db.increment_borrows(member_id)
-        logger.info("Book '%s' is not available", id)
-        return {"Message": f"Book ID '{id}' is borrowed by member ID '{member_id}'"}
+        if member_db.increment_borrows(member_id):
+            logger.info("Book '%s' is not available", id)
+            return {"Message": f"Book ID '{id}' is borrowed by member ID '{member_id}'"}
+    raise
     
 @router_books.patch("/{id}/return/{member_id}")
 def return_book(id: int, member_id: int):

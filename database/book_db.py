@@ -103,9 +103,9 @@ class BookDB:
             cursor.execute("SELECT COUNT(*) FROM books WHERE is_available = FALSE")
             return cursor.fetchone()["COUNT(*)"]
 
-    def count_by_genre(self, genre: Genre) -> int | None:
+    def count_by_genre(self, genre: Genre | None = None) -> int | None:
         with self.conn.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT COUNT(*) FROM books GROUP BY genre")
+            cursor.execute("SELECT genre, COUNT(*) FROM books GROUP BY genre")
             return cursor.fetchall()
     
     def count_active_borrows_by_member(self, member_id: int) -> int | None:

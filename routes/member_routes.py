@@ -29,7 +29,7 @@ def member_by_id(id: int):
 
     member = member_db.get_member_by_id(id)
     if not member:
-        raise HTTPException(404, "ID not found")
+        raise HTTPException(404, "Member not found")
     
     logger.info("Return member by ID '%s'", id)
     return {"Message": member}

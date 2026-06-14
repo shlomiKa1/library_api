@@ -1,7 +1,7 @@
 from .db_connection import db
 from logs.logger_config import logger
 from pydantic import BaseModel, Field, EmailStr
-from config import COUNT_BOOKS
+
 
 class Member(BaseModel):
     name: str = Field(max_length=50)
@@ -49,7 +49,7 @@ class MemberDB:
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
                 "UPDATE members SET is_active = FALSE WHERE id = %s",
-                (member_id, )    
+                (member_id,)    
             )
             self.conn.commit()
             logger.info("deactivate member ID '%s' on database", member_id)
@@ -67,7 +67,7 @@ class MemberDB:
         
     def increment_borrows(self, member_id: int) -> bool:        
         with self.conn.cursor() as cursor:
-            cursor.execute("UPDATE members SET total_borrows = COALESCE(total_borrows, 0) +1 WHERE id = %s AND total_borrows ", (member_id,))
+            cursor.execute("UPDATE members SET total_borrows = COALESCE(total_borrows, 0) +1 WHERE id = %s", (member_id,))
             self.conn.commit()
             logger.info("Count books that member ID '%s' borrow on database", member_id)
             return cursor.rowcount > 0
@@ -75,14 +75,14 @@ class MemberDB:
     def count_active_members(self) -> int | None:
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute("SELECT COUNT(name) FROM members WHERE is_active = TRUE")
-            return cursor.fetchone()
+            return cursor.fetchone()["COUNT(name)"]
     
     def get_top_member(self) -> dict | None:
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
                 """
-                    SELECT name, MAX(total_borrows) as max_total
-                    WHERE total_borrows = max_total
+                    SELECT * FROM members WHERE total_borrows > 0
+                    ORDER BY total_borrows DESC
                 """
             )
             return cursor.fetchone()

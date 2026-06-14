@@ -1,6 +1,6 @@
 from logs.logger_config import logger
 from database.book_db import books_db
-from database.member_db import member_db, Member
+from database.member_db import member_db
 from fastapi import APIRouter, HTTPException
 
 
@@ -35,5 +35,17 @@ def books_by_genre():
     logger.info("Return total genre %s", genres)
     return genres
 
-
+@router_report.get("/top-member")
+def get_top_member():
+    logger.info("Start get top member")
+    member = member_db.get_top_member()
+    
+    if not member:
+        raise HTTPException(400, "There is not a member")
+    
+    logger.info("Top member '%s' borrowed '$s'", member["id"], member["total_borrows"])
+    return {
+        "member_id": member["id"],
+        "borrowed": member["total_borrows"]
+    }
 

@@ -1,5 +1,5 @@
 from logs.logger_config import logger
-from secret_details import CONMNECTION, DATABASE
+from config import CONMNECTION, DATABASE
 import mysql.connector
 
 
@@ -11,6 +11,9 @@ class DbConn:
         
         self.conn = None
         self.get_connect()
+        self.create_database()
+        self.create_table_books()
+        self.create_table_members()
 
     def get_connect(self):
         self.conn = mysql.connector.connect(
