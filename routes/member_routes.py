@@ -23,3 +23,14 @@ def get_members():
     logger.info("Return '%s' members", len(members))
 
     return {"Message": members}
+
+@router_members.get("/{id}", status_code=200)
+def member_by_id(id: int):
+    logger.info("Start... get member by ID '%s' - server", id)
+
+    member = member_db.get_member_by_id(id)
+    if not member:
+        raise HTTPException(404, "ID not found")
+    
+    logger.info("Return member by ID '%s'", id)
+    return member
