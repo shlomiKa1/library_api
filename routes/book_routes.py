@@ -50,7 +50,7 @@ def update_book(id: int, data: UpdateBooks):
     logger.info("Book ID '%s' updated successfully", id)
     return {"Message": f"Book ID updated {id} successfully"}
 
-@router_books.patch("/books/{id}/borrow/{member_id}")
+@router_books.patch("/{id}/borrow/{member_id}")
 def borrow_book(id: int, member_id: int):
     logger.info("Start... borrow book - server")
 
@@ -59,9 +59,17 @@ def borrow_book(id: int, member_id: int):
     if count_book >= COUNT_BOOKS:
         raise HTTPException(500, "Cant borrow more books")
     
-    if books_db.set_available(id, True, member_id):
+    if books_db.set_available(id, False, member_id):
         member_db.increment_borrows(member_id)
         logger.info("Book '%s' is not available", id)
         return {"Message": "Book is borrowed"}
     
     raise HTTPException(404, "ID not found")
+
+@router_books.patch("/{id}/return/{member_id}")
+def return_book(id: int, member_id: int):
+    logger.info("Start... return book ID '%s' & member ID '%s' - server", id, member_id)
+
+    if books_db.set_available(id, True, member_id):
+        logger.info("Book ID '%s' return by member ID '%s'", id, member_id)
+        return {"Message": f"Member ID '{member_id}' return the book ID '{id}'"}
