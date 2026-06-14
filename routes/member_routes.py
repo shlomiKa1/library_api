@@ -1,5 +1,4 @@
 from logs.logger_config import logger
-from database.book_db import books_db
 from database.member_db import member_db, Member
 from fastapi import APIRouter, HTTPException
 
@@ -39,9 +38,8 @@ def member_by_id(id: int):
 def edit_member(id: int, new_member: Member):
     logger.info("Start... update member by ID '%s' - server", id)
 
-    updated = member_db.update_member(id, new_member.model_dump(exclude_unset=True))
-    if not updated:
-        raise HTTPException(404, "ID not found")
+    member_by_id(id)
+    member_db.update_member(id, new_member.model_dump(exclude_unset=True))
     
     logger.info("Updated member ID '%s' successfully", id)
     return {"Message": f"Updated member ID {id} successfully"}
@@ -50,9 +48,18 @@ def edit_member(id: int, new_member: Member):
 def deactivate_member(id: int):
     logger.info("Start... dactivate member by ID '%s' - server", id)
 
-    deactivated = member_db.deactivate_member(id)
-    if not deactivated:
-        raise HTTPException(404, "ID not found")
+    member_by_id(id)
+    member_db.deactivate_member(id)
 
     logger.info("Deactivated member by ID '%s'", id)
     return {"Message": f"Deactivated member by ID {id}"}
+
+@router_members.patch("/{id}/activate")
+def activate_member(id: int):
+    logger.info("Start... activate member by ID '%s' - Server", id)
+
+    member_by_id(id)
+    member_db.activate_member(id)
+    
+    logger.info("Activate member by ID '%s'", id)
+    return {"Message": f"Activated member ID '{id}'"}
