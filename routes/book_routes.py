@@ -6,7 +6,7 @@ from config import COUNT_BOOKS
 from routes.member_routes import member_by_id
 
 
-router_books = APIRouter()
+router_books = APIRouter(tags=["Books"])
 
 @router_books.post("", status_code=201)
 def add_book(new_book: Books):

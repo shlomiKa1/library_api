@@ -81,11 +81,12 @@ class MemberDB:
         with self.conn.cursor(dictionary=True) as cursor:
             cursor.execute(
                 """
-                    SELECT * FROM members WHERE total_borrows > 0
-                    ORDER BY total_borrows DESC
+                    SELECT id as member_id , total_borrows as borrowed FROM members
+                    WHERE total_borrows = (SELECT MAX(total_borrows) FROM members)
+
                 """
             )
-            return cursor.fetchone()
+            return cursor.fetchall()
         
 
 member_db = MemberDB()

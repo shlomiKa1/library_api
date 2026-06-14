@@ -2,7 +2,7 @@ from logs.logger_config import logger
 from database.member_db import member_db, Member
 from fastapi import APIRouter, HTTPException
 
-router_members = APIRouter()
+router_members = APIRouter(tags=["Members"])
 
 @router_members.post("", status_code=201)
 def add_member(new_member: Member):
