@@ -34,3 +34,14 @@ def member_by_id(id: int):
     
     logger.info("Return member by ID '%s'", id)
     return member
+
+@router_members.patch("/{id}", status_code=200)
+def edit_member(id: int, new_member: Member):
+    logger.info("Start... update member by ID '%s' - server", id)
+
+    updated = member_db.update_member(id, new_member.model_dump(exclude_unset=True))
+    if not updated:
+        raise HTTPException(404, "ID not found")
+    
+    logger.info("Updated member ID '%s' successfully", id)
+    return {"Message": f"Updated member ID {id} successfully"}
